@@ -30,6 +30,7 @@ jobs:
           & $distroExe install --root
           @'
           [boot]
+          systemd=true
           '@ | Out-File -FilePath .\wsl.conf -Encoding utf8
             wsl --distribution Ubuntu-24.04 --cd $(Get-Location) cp wsl.conf /etc/wsl.conf
             Write-Output 'Restarting WSL...'
