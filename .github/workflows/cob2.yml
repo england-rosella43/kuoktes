@@ -1,0 +1,12 @@
+name: CI/CD
+on:
+  workflow_dispatch:
+  
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - run: wsl --install -d Ubuntu-24.04 --name reproduction --no-launch
+      - run: apt update -y
+        shell: wsl-run {0}
+            
