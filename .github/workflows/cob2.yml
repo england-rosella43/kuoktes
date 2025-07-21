@@ -1,4 +1,4 @@
-name: CI/CD
+name: CI/pida
 on:
   workflow_dispatch:
   
