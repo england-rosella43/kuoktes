@@ -9,10 +9,7 @@ jobs:
       - run: |
           # update WSL, download & install Ubuntu-24.04
           wsl --set-default-version 2; wsl --update; wsl --status;
-          if ('Ubuntu-24.04' -eq 'none') {
-            Write-Output 'Skipping distro installation...'
-            return
-          }
+          
           $distros = (Invoke-RestMethod -Uri https://raw.githubusercontent.com/microsoft/WSL/refs/heads/master/distributions/DistributionInfo.json).Distributions
   
           # github runner does support windows arm64 runners, so we don't need to check the architecture
@@ -21,12 +18,19 @@ jobs:
           $filename = "Ubuntu-24.04$([System.IO.Path]::GetExtension($distroDownloadUrl))"
           Write-Output 'Downloading and installing the distro...'
           Invoke-WebRequest -Uri $distroDownloadUrl -OutFile $filename
-  
+          
           Expand-Archive -Path $filename -DestinationPath .\
           Remove-Item -Path .\AppxBundle -Recurse -Force -ErrorAction SilentlyContinue # cleanup
           # exclude the extra splash and setup exe files that come with "ubuntu" and "ubuntu-22.04" distros
           $distroExe = (Get-ChildItem -Path . -Filter *.exe).Where({ $_.Name -notmatch 'splash|setup' }).FullName
           & $distroExe install --root
+          @'
+          @echo off
+          FOR /F "usebackq tokens=*" %%F IN (`wsl wslpath '%~1'`) DO SET wslpath=%%F
+          wsl -d Ubuntu-24.04 sed -i 's/\r$//' %wslpath%
+          wsl -d Ubuntu-24.04 --cd %GITHUB_WORKSPACE% bash --noprofile --norc -eo pipefail %wslpath%
+          '@ | Out-File -FilePath $env:RUNNER_TEMP\wsl-run.bat -Encoding utf8
+          $env:RUNNER_TEMP >> $env:GITHUB_PATH
         shell: pwsh
       - run: |
           sudo apt install apt-transport-https ca-certificates curl gnupg lsb-release -y
