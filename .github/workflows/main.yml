@@ -1,0 +1,17 @@
+name: CI/CD
+on:
+  workflow_dispatch:
+  
+jobs:
+  build:
+    # always windows. why would you use wsl on linux or macos 😂
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: vedantmgoyal9/setup-wsl2@main
+      - run: apt update && apt upgrade -y
+        shell: wsl-run {0} # add this to run the commands inside linux
+      - run: |
+          ls -al
+          env
+        shell: wsl-run {0} # don't forget to add this
